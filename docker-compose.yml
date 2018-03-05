@@ -1,0 +1,51 @@
+version: '3.3'
+services:
+  mongo:
+    command: mongod
+    image: mongo:3.4
+    ports:
+      - "27017:27017" # map port to none standard port, to avoid conflicts with locally installed mongodb.
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock
+  redis:
+    command: redis
+    image: redis:4.0
+    ports:
+      - "6379:6379" # map port to none standard port, to avoid conflicts with locally installed redis.
+  api:
+    build:
+      context: "./api"
+      dockerfile: Dockerfile.dev
+    volumes:
+      - type: bind
+        source: ./api/src
+        target: /app/src
+    ports:
+      - "3001:3001"
+    depends_on:
+      - mongo
+  web:
+    build:
+      context: "./web"
+      dockerfile: Dockerfile.dev
+    volumes:
+      - type: bind
+        source: ./web/src
+        target: /app/src
+    ports:
+      - "3002:3002"
+    depends_on:
+      - mongo
+      - redis
+  landing:
+    build:
+      context: "./landing"
+      dockerfile: Dockerfile.dev
+    volumes:
+      - type: bind
+        source: ./landing/src
+        target: /app/src
+    ports:
+      - "3000:3000"
+    depends_on:
+      - mongo
